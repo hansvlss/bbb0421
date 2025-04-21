@@ -1,0 +1,35 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main  # 只在 `main` 分支推送时触发部署
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # 下载 worker.zip 文件
+      - name: Download worker.zip
+        run: |
+          curl -L -o worker.zip https://github.com/bia-pain-bache/BPB-Worker-Panel/releases/download/v3.2.3/worker.zip
+
+      # 解压 worker.zip 文件
+      - name: Unzip worker.zip
+        run: |
+          unzip -o worker.zip -d worker
+          
+      # 确保解压后有文件并提交
+      - name: Add worker files to git and commit
+        run: |
+          ls -la worker  # 查看 worker 目录，确保有内容
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add worker/  # 添加解压后的 worker 文件夹
+          git commit -m "Update worker files from release" || echo "No changes to commit"  # 如果没有变化则跳过提交
+          git push origin main  # 推送到 main 分支
+
